@@ -193,19 +193,25 @@ def get_reviews_info(article, journal):
     # Reviewers that have not accepted a review assignment are not considered for grading by RQC.
 
     # If data for the submission has already been sent to RQC, and it includes a reviewer
-    # that has declined to review AFTER having accepted initially AND the data that was sent
-    # includes said reviewer the review assignment is treated as having been accepted, and
+    # that has declined to review AFTER having accepted initially AND the data that was sent we
+    # include said reviewer and the review assignment is treated as having been accepted, and
     # not completed.
-    review_assignments = article.reviewassignment_set.filter(
-        Q(date_accepted__isnull=False) # ReviewAssignment not accepted
-        | Q(
-            date_declined__isnull=False, # Assignment was declined but only after data has been sent to RQC
-            rqcrevieweroptingdecisionforreviewassignment__sent_to_rqc=True
-        )
-    ).order_by("date_requested")  # To create a persistent ordering. Careful date_accepted gets deleted!
+    review_assignments = (article.reviewassignment_set.
+                            # If the review round is null it was deleted (and reviews shouldn't be sent, unless they did
+                            # already get sent)
+                            filter(Q(rqcrevieweroptingdecisionforreviewassignment__sent_to_rqc=True)
+                                   | Q(review_round__isnull=False)).
+                            filter(Q(date_accepted__isnull=False) # ReviewAssignment accepted
+                            | Q(date_declined__isnull=False,
+                            rqcrevieweroptingdecisionforreviewassignment__sent_to_rqc=True) # Assignment was declined
+                            # but only after data has been sent to RQC
+                            ).select_related('rqcrevieweroptingdecisionforreviewassignment') # optimize Query
+                            .order_by("date_requested"))  # To create a persistent ordering
+    # Careful date_accepted gets deleted when the review is declined!
     review_num = 1
     for review_assignment in review_assignments:
         reviewer = review_assignment.reviewer
+        # TODO does this code function for Non-Textbox review elements?
         review_assignment_answers = [ra.answer for ra in review_assignment.review_form_answers()]
         review_text = " ".join(review_assignment_answers)
         reviewer_has_opted_in = has_opted_in(review_assignment)
