@@ -145,7 +145,6 @@ class TestReviewerOpting(RQCAdapterBaseTestCase):
                 opting_status=self.OPT_OUT
             ).exists()
         )
-
     def test_active_review_assignments_get_status_update(self):
         """Correctly updates RQCOptingStatusForReviewAssignment for active review assignments."""
         self.create_reviewer_opting_decision_for_ReviewAssignment(review_assignment=self.review_assignment,
@@ -281,7 +280,9 @@ class TestReviewerOpting(RQCAdapterBaseTestCase):
         ).exists())
 
     def test_opting_for_review_assignment_created_with_opt_out(self):
-        """Test that RQCOptingDecisionForReviewAssignment is created when review request is accepted."""
+        """Test that RQCOptingDecisionForReviewAssignment is correctly
+        created when review request is accepted
+        and opting status is 'opt out'"""
         self.prepare_review_assignment()
         opting_decision = self.create_opting_status(self.journal_one, self.OPT_OUT)
         self.client.post(reverse(self.accept_review_request_view, args=[self.review_assignment.id]))
