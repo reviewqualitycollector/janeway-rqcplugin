@@ -9,13 +9,13 @@ from plugins.rqc_adapter.models import RQCDelayedCall
 
 class Command(BaseCommand):
     """
-    Retries failed RQC Calls.
+    Tests if cron is set up correctly for RQC
     """
     help = "Tests if cron is setup correctly for RQC."
 
     def handle(self, *args, **options):
         """
-        Tests if cron is setup correctly for RQC
+        Tests if cron is set up correctly for RQC
         :param args: None
         :param options: None
         :return: None

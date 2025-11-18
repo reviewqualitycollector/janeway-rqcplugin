@@ -6,6 +6,7 @@ This command installs the cronjob that makes delayed calls to the RQC API.
 
 import os
 import shutil
+from time import sleep
 
 from utils.logger import get_logger
 
@@ -61,8 +62,7 @@ class Command(BaseCommand):
         return tab
 
     @staticmethod
-    def find_rqc_cronjob(tab):
-        command_name = 'rqc_make_delayed_calls'
+    def find_rqc_cronjob(tab, command_name):
         for job in tab:
             if command_name in job.command:
                 return job
@@ -104,10 +104,10 @@ class Command(BaseCommand):
         logger.info(f'Successfully installed RQC cronjob.')
         self.stdout.flush()
 
-    def remove_rqc_cronjob(self):
+    def remove_rqc_cronjob(self, command_name='rqc_make_delayed_calls'):
         """Removes RQC cronjob."""
         tab = self.get_crontab()
-        rqc_cronjob = self.find_rqc_cronjob(tab)
+        rqc_cronjob = self.find_rqc_cronjob(tab, command_name)
         if tab is None:
             self.stdout.write(self.style.ERROR('Could not remove RQC cronjob. Perhaps RQC cronjob '
                              'or cron is not installed.')
@@ -135,6 +135,29 @@ class Command(BaseCommand):
                                ''.format(rqc_cronjob)))
             return
 
+    def check_config(self):
+        """
+        Temporarily installs a cron job that tests if cron is correctly configured.
+        """
+        tab = self.get_crontab()
+        if tab is None:
+            self.stdout.write(self.style.ERROR('Could not find crontab. Perhaps the crontab python module is not installed.'))
+        # Get command
+        virtualenv = os.environ.get('VIRTUAL_ENV', None)
+        django_command = "{0}/manage.py {1}".format(settings.BASE_DIR, 'rqc_test_cron')
+        if virtualenv:
+            command = '/%s/bin/python3 %s' % (virtualenv, django_command)
+        else:
+            command = '%s' % django_command
+        cron_job = tab.new(command)
+        cron_job.setall('* * * * *')
+        tab.write()
+        # Wait for the cronjob to be executed
+        sleep(61)
+        # Check if the command was successful
+
+        self.remove_rqc_cronjob('rqc_test_cron')
+
     def handle(self, *args, **options):
         """
         Manages RQC cronjob based on the specified action and schedule.
@@ -146,3 +169,5 @@ class Command(BaseCommand):
             self.remove_rqc_cronjob()
         elif action == 'status':
             self.show_status()
+        elif action == 'check_config':
+            self.check_config()
