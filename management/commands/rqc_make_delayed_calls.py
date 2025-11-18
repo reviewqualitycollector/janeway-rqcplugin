@@ -15,11 +15,6 @@ from utils.logger import get_logger
 
 logger = get_logger(__name__)
 
-try:
-    import crontab
-except (ImportError, ModuleNotFoundError):
-    crontab = None
-
 class Command(BaseCommand):
     """
     Retries failed RQC Calls.
