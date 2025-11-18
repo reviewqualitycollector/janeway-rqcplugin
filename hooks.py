@@ -60,6 +60,16 @@ def render_reviewer_opting_form(context):
     # Validity of the credentials is checked upon entering the settings (not here).
     # Additional validation via another API call is too costly.
     has_api_credentials = RQCJournalAPICredentials.objects.filter(journal=journal).exists()
+<<<<<<< HEAD
+=======
+    if not user.is_authenticated:
+        if has_api_credentials:
+            return ('<p>This journal uses <a href="https://reviewqualitycollector.org" target="_blank" rel="noopener">'
+                    'Review Quality Collector</a>. Login is required to participate.</p>')
+        else:
+            # Don't display anything. For instance if "One-Click-Access" is enabled.
+            return ''
+>>>>>>> 4bab54d (Improved display test when ONE-CLICK-ACCESS and the journal uses RQC)
     if has_api_credentials and not has_opted_in_or_out(user, journal):
         form = forms.ReviewerOptingForm(initial=
                                         {'status_selection_field': RQCReviewerOptingDecision.OptingChoices.OPT_IN})
