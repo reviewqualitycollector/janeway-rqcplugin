@@ -65,7 +65,6 @@ def register_for_events():
         Events.ON_ARTICLE_UNDECLINED,
         implicit_call_mhs_submission
     )
-    # TODO Currently does not work. The event doesn't get raised!
     events_logic.Events.register_for_event(
         Events.ON_REVISIONS_REQUESTED,
         implicit_call_mhs_submission,
