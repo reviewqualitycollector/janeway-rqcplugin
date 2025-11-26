@@ -205,7 +205,8 @@ def set_reviewer_opting_status(request):
                     sent_to_rqc=False,
                     review_assignment__is_complete=False,
                     review_assignment__date_declined__isnull=True,
-                    review_assignment__date_accepted__isnull=False
+                    review_assignment__date_accepted__isnull=False,
+                    review_assignment__date_accepted__year=utc_now().year
                 ).update(opting_status=opting_status, decision_record=decision)
 
                 return redirect(
