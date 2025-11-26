@@ -118,8 +118,6 @@ Janeway's "Conditional Accept" is transmitted to RQC as a minor revision request
 
 Attachments uploaded by reviewers are not yet transmitted to RQC.
 
-Currently Janeway does not fire the `ON_REVISIONS_REQUESTED` event which means the plugin cannot send a call to RQC when revisions are requested.
-
 ## 6. Current Implementation Status
 
 The plugin is currently still in development.
