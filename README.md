@@ -81,10 +81,8 @@ This repository is a Janeway plugin that realizes a Janeway adapter for the RQC 
 
 ### 3.2 Journal Setup
 
-It is strongly recommended that you disable one-click-access when using the RQC
-Plugin. Review data from reviewers that are not logged in can not be sent to RQC due
-privacy reasons. If you have one-click-access enabled many reviews will not be sent to RQC defeating
-the purpose of using the plugin!
+- After registering with RQC, you will receive a Journal ID and an API Key for your journal.
+- Enter both values into the form on the plugin management page in your journal.
 
 ### 3.3 Daily use
 1. Navigate to the Plugin Management page in the navigation pane
