@@ -115,7 +115,6 @@ def submit_article_for_grading(request, article_id):
     response = call_mhs_submission(journal_id = api_credentials.rqc_journal_id,
                                    api_key = api_credentials.api_key,
                                    submission_id=article_id, post_data=post_data, article=article)
-    print(response) #TODO remove
     if not response['success']:
         match response['http_status_code']:
             case 400:
@@ -157,29 +156,22 @@ def submit_article_for_grading(request, article_id):
 # The request must provide a journal object because the opting decision in specific to the journal
 # The user must be a reviewer since only reviewers should be able to opt in or out
 @decorators.has_journal
-@decorators.reviewer_user_required
 def set_reviewer_opting_status(request):
     if request.method == 'POST':
         form = forms.ReviewerOptingForm(request.POST)
         if form.is_valid():
-            opting_status = form.cleaned_data['status_selection_field']
-            user = request.user
-            decision, created = RQCReviewerOptingDecision.objects.update_or_create(reviewer = user, journal= request.journal, defaults={'opting_status': opting_status, 'opting_date': utc_now()})
-            if opting_status == RQCReviewerOptingDecision.OptingChoices.OPT_IN:
-                messages.info(request, 'Thank you for choosing to participate in RQC!')
-            else:
-                messages.info(request, 'Thank you for your response. Your preference has been recorded.')
 
+            opting_status = form.cleaned_data['status_selection_field']
             assignment_id = request.POST.get('assignment_id')
+
             # Logic checks request.GET for the access code.
-            # If the access code is not available that way we can access the code
-            # via a hidden input field in the form.
             access_code = logic.get_access_code(request)
             if access_code is None:
                 access_code = request.POST.get('access_code', None)
+
+            # Get the ReviewAssignment object.
             try:
                 if access_code is not None:
-                    print("access_code is none")
                     assignment = ReviewAssignment.objects.get(
                         Q(pk=assignment_id)
                         & Q(is_complete=False)
@@ -192,27 +184,46 @@ def set_reviewer_opting_status(request):
                         & Q(is_complete=False)
                         & Q(reviewer=request.user)
                         & Q(article__stage=submission_models.STAGE_UNDER_REVIEW)
-                        )
-
-                # Check if the Review Assignment is frozen (see also the is_frozen property
-                # of RQCReviewerOptingDecisionForReviewAssignment)
-                # Not Frozen means data was not yet received by RQC
-                # and the assignment is ongoing meaning accepted but not complete and not declined.
-                # If the Review Assignment is not frozen we update the opting status to reflect
-                # the selected value.
-                RQCReviewerOptingDecisionForReviewAssignment.objects.filter(
-                    review_assignment=assignment,
-                    sent_to_rqc=False,
-                    review_assignment__is_complete=False,
-                    review_assignment__date_declined__isnull=True,
-                    review_assignment__date_accepted__isnull=False,
-                    review_assignment__date_accepted__year=utc_now().year
-                ).update(opting_status=opting_status, decision_record=decision)
-
-                return redirect(
-                    logic.generate_access_code_url("do_review", assignment, access_code)
-                )
+                    )
             except ReviewAssignment.DoesNotExist:
+                # This shouldn't occur normally.
+                # Without the assignment the redirect url to the review form cannot be generated.
+                # In order to send the user back to the review form the HTTP_REFERER is the best bet.
+                logger.error(f'RQC: Error while setting reviewer opting status. '
+                             f'ReviewAssignment {assignment_id} not found.')
+                messages.error(request, 'An unexpected error occurred while '
+                                        'updating your participation choice.')
+                referer = request.META.get('HTTP_REFERER')
+                if referer:
+                    return redirect(referer)
+                else:
                     return redirect('core_dashboard')
+
+            user = assignment.reviewer
+
+            decision, created = RQCReviewerOptingDecision.objects.update_or_create(reviewer = user, journal= request.journal, defaults={'opting_status': opting_status, 'opting_date': utc_now()})
+            if opting_status == RQCReviewerOptingDecision.OptingChoices.OPT_IN:
+                messages.info(request, 'Thank you for choosing to participate in RQC!')
+            else:
+                messages.info(request, 'Thank you for your response. Your preference has been recorded.')
+
+            # Check if the Review Assignment is frozen (see also the is_frozen property
+            # of RQCReviewerOptingDecisionForReviewAssignment)
+            # Not Frozen means data was not yet received by RQC
+            # and the assignment is ongoing meaning accepted but not complete and not declined.
+            # If the Review Assignment is not frozen we update the opting status to reflect
+            # the selected value.
+            RQCReviewerOptingDecisionForReviewAssignment.objects.filter(
+                review_assignment=assignment,
+                sent_to_rqc=False,
+                review_assignment__is_complete=False,
+                review_assignment__date_declined__isnull=True,
+                review_assignment__date_accepted__isnull=False,
+                review_assignment__date_accepted__year=utc_now().year
+            ).update(opting_status=opting_status, decision_record=decision)
+
+            return redirect(
+                logic.generate_access_code_url("do_review", assignment, access_code)
+            )
     else:
         return redirect('core_dashboard')
