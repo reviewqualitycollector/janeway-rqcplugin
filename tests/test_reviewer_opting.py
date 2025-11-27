@@ -22,10 +22,12 @@ class TestReviewerOpting(RQCAdapterBaseTestCase):
 
     post_opting_form_url = reverse(opting_from_post_view)
 
-    def create_opt_in_form_data(self, assignment_id=None):
+    def create_opt_in_form_data(self, assignment_id=None, access_code=None):
         data = {'status_selection_field': self.OPT_IN}
         if assignment_id:
             data['assignment_id'] = assignment_id
+        if access_code:
+            data['access_code'] = access_code
         return data
 
     def create_opt_out_form_data(self, assignment_id=None):
@@ -127,7 +129,8 @@ class TestReviewerOpting(RQCAdapterBaseTestCase):
 
     def test_opting_status_set(self):
         """Test creation of opting status when form is submitted and redirection."""
-        response = self.post_opting_status(form_data=self.create_opt_in_form_data())
+        response = self.post_opting_status(form_data=self.create_opt_in_form_data(assignment_id=
+                                                                                  self.review_assignment.id))
         # Redirect after POST
         self.assertEqual(response.status_code, 302)
         # Created Opting status
@@ -135,7 +138,8 @@ class TestReviewerOpting(RQCAdapterBaseTestCase):
 
     def test_opting_status_set_opt_out(self):
         """Test creation of opting status when form is submitted and redirection."""
-        response = self.post_opting_status(form_data=self.create_opt_out_form_data())
+        response = self.post_opting_status(form_data=self.create_opt_out_form_data(assignment_id=
+                                                                                   self.review_assignment.id))
         # Redirect after POST
         self.assertEqual(response.status_code, 302)
         # Created Opting status
@@ -145,6 +149,7 @@ class TestReviewerOpting(RQCAdapterBaseTestCase):
                 opting_status=self.OPT_OUT
             ).exists()
         )
+
     def test_active_review_assignments_get_status_update(self):
         """Correctly updates RQCOptingStatusForReviewAssignment for active review assignments."""
         self.create_reviewer_opting_decision_for_ReviewAssignment(review_assignment=self.review_assignment,
@@ -216,9 +221,8 @@ class TestReviewerOpting(RQCAdapterBaseTestCase):
         """Test redirection to review form."""
         self.get_review_form(assignment_id=self.review_assignment.id)
         response = self.redirect_test_helper()
-        final_url = response.request['PATH_INFO']
         expected_url = reverse(self.review_form_view, args=[self.review_assignment.id])
-        self.assertEqual(final_url, expected_url)
+        self.assertRedirects(response, expected_url)
 
     def test_opting_form_not_shown(self):
         """Form is not shown on the review form if the reviewer already has a valid opting status."""
@@ -310,3 +314,48 @@ class TestReviewerOpting(RQCAdapterBaseTestCase):
             review_assignment=self.review_assignment,
             opting_status=self.UNDEFINED,
         ).exists())
+
+    def helper_create_session_with_anonymous_user(self):
+        self.client.logout()
+        user = AnonymousUser()
+        session = self.client.session
+        session['journal'] = self.journal_one.id
+        session['user'] = user.pk
+        session.save()
+
+    # Tests for accessing the page via access_code
+    def test_opting_form_shown_access_code(self):
+        """If the page was accessed with an access code and the reviewer
+        for the assignment has no valid opting status the form should be shown."""
+        # No login required when accessing a page via access code
+        self.helper_create_session_with_anonymous_user()
+        response = self.get_review_form(self.review_assignment.id, self.review_assignment.access_code)
+        self.assertTemplateUsed(response, self.opting_form_template)
+
+    def test_opting_form_not_shown_access_code(self):
+        """If the page was accessed with an access code and the reviewer
+        for the assignment has a valid opting status the form should not be shown."""
+        self.helper_create_session_with_anonymous_user()
+        RQCReviewerOptingDecision.objects.create(reviewer=self.review_assignment.reviewer,
+                                                 opting_status=self.OPT_IN,
+                                                 journal=self.journal_one)
+        response = self.get_review_form(self.review_assignment.id, self.review_assignment.access_code)
+        self.assertTemplateNotUsed(response, self.opting_form_template)
+
+        final_url = response.request['PATH_INFO']
+        expected_url = reverse(self.review_form_view, args=[self.review_assignment.id])
+        self.assertEqual(final_url, expected_url)
+
+    def test_redirection_with_access_code(self):
+        """If the page was accessed with an access code the redirection
+        should redirect to the same page with the code."""
+        self.helper_create_session_with_anonymous_user()
+        self.get_review_form(self.review_assignment.id, self.review_assignment.access_code)
+        response = self.post_opting_status(form_data=self.create_opt_in_form_data(
+                                           assignment_id=self.review_assignment.id,
+                                           access_code = self.review_assignment.access_code),
+                                           follow=True)
+        expected_url = reverse(self.review_form_view, args=[self.review_assignment.id])
+        expected_url += f"?access_code={self.review_assignment.access_code}"
+        self.assertRedirects(response, expected_url)
+
