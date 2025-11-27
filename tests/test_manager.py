@@ -260,6 +260,9 @@ class TestManagerMockCalls(TestManager):
         response = self.post_manager_form(form_data)
         self.assertEqual(response.status_code, 403)
 
+# These tests make real calls to the RQC API. In order to do so the API-Credentials need to be
+# saved as environment variables. See 'has_api_credentials_env' above
+# Only API-Credentials for RQC Demo-Mode journals should be used!
 @skipUnless(has_api_credentials_env, "No API key found. Cannot make API call integration tests.")
 class TestManagerAPIIntegration(TestManager):
     def test_api_credentials_accepted(self):

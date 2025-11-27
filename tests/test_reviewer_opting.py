@@ -4,13 +4,13 @@
 from datetime import timedelta
 from unittest.mock import patch
 
+from django.contrib.auth.models import AnonymousUser
 from django.urls import reverse
 from django.utils import timezone
 
 from plugins.rqc_adapter.models import RQCReviewerOptingDecision, RQCJournalAPICredentials, \
     RQCReviewerOptingDecisionForReviewAssignment
 from plugins.rqc_adapter.tests.base_test import RQCAdapterBaseTestCase
-from review.views import accept_review_request
 from utils.testing import helpers
 
 class TestReviewerOpting(RQCAdapterBaseTestCase):

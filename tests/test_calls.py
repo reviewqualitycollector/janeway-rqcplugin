@@ -216,6 +216,7 @@ class TestExplicitCalls(TestCallsToMHSSubmissionEndpointMocked):
             # Article has successfully been put under revision
             self.assertTrue(self.active_article.is_under_revision())
             revision_request = RevisionRequest.objects.filter(article=self.active_article).order_by('-date_requested').first()
+            self.assertTrue(revision_request is not None)
             self.active_article.is_accepted = False
             self.active_article.date_declined = None
             self.active_article.save()
@@ -396,6 +397,9 @@ class TestDelayedCalls(TestCallsToMHSSubmissionEndpointMocked):
         call_command("rqc_make_delayed_calls")
         self.assertFalse(RQCDelayedCall.objects.filter(pk=delayed_call.pk).exists())
 
+# These tests make real calls to the RQC API. In order to do so the API-Credentials need to be
+# saved as environment variables. See 'has_api_credentials_env' above
+# Only API-Credentials for RQC Demo-Mode journals should be used!
 @skipUnless(has_api_credentials_env, "No API key found. Cannot make API call integration tests.")
 class TestSubmissionCallsAPIIntegration(TestCallsToMHSSubmissionEndpoint):
     def setUp(self):
