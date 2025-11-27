@@ -41,9 +41,8 @@ This template renders the form where reviewers can opt in or out from RQC.
     <div id="help_label" class="callout warning" style="display: none; margin: 10px 0; animation: fadeIn 0.3s;">
         <p><strong>You need to select an option below before you can submit the review form.</strong></p>
     </div>
-    <form method="POST" id="rqc_opting_form" action= "{% url 'rqc_adapter_set_reviewer_opting_status' %}">
+    <form method="POST" id="rqc_opting_form" action= "{% url 'rqc_adapter_set_reviewer_opting_status' assignment.id %}{% if access_code %}?access_code={{ access_code }}{% endif %}">
         {% csrf_token %}
-        <input type="hidden" name="assignment_id" value="{{ assignment.id }}">
         {% if access_code %}
             <input type="hidden" name="access_code" value="{{ access_code }}">
         {% endif %}

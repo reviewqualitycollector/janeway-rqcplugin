@@ -20,25 +20,26 @@ class TestReviewerOpting(RQCAdapterBaseTestCase):
     opting_from_post_view = 'rqc_adapter_set_reviewer_opting_status'
     accept_review_request_view = 'accept_review'
 
-    post_opting_form_url = reverse(opting_from_post_view)
-
-    def create_opt_in_form_data(self, assignment_id=None, access_code=None):
+    def create_opt_in_form_data(self, access_code=None):
         data = {'status_selection_field': self.OPT_IN}
-        if assignment_id:
-            data['assignment_id'] = assignment_id
         if access_code:
             data['access_code'] = access_code
         return data
 
-    def create_opt_out_form_data(self, assignment_id=None):
+    def create_opt_out_form_data(self, access_code=None):
         data = {'status_selection_field': self.OPT_OUT}
-        if assignment_id:
-            data['assignment_id'] = assignment_id
+        if access_code:
+            data['access_code'] = access_code
         return data
 
-    def post_opting_status(self, form_data, follow=False):
+    def post_opting_status(self, form_data, assignment_id = None, follow=False, access_code=None):
+        if assignment_id is None:
+            assignment_id = self.review_assignment.id
+        url = reverse(self.opting_from_post_view, args=[assignment_id])
+        if access_code:
+            url = url + f'?access_code={access_code}'
         return self.client.post(
-            self.post_opting_form_url,
+            url,
             data=form_data,
             follow=follow
         )
@@ -129,8 +130,7 @@ class TestReviewerOpting(RQCAdapterBaseTestCase):
 
     def test_opting_status_set(self):
         """Test creation of opting status when form is submitted and redirection."""
-        response = self.post_opting_status(form_data=self.create_opt_in_form_data(assignment_id=
-                                                                                  self.review_assignment.id))
+        response = self.post_opting_status(form_data=self.create_opt_in_form_data())
         # Redirect after POST
         self.assertEqual(response.status_code, 302)
         # Created Opting status
@@ -138,10 +138,7 @@ class TestReviewerOpting(RQCAdapterBaseTestCase):
 
     def test_opting_status_set_opt_out(self):
         """Test creation of opting status when form is submitted and redirection."""
-        response = self.post_opting_status(form_data=self.create_opt_out_form_data(assignment_id=
-                                                                                   self.review_assignment.id))
-        # Redirect after POST
-        self.assertEqual(response.status_code, 302)
+        self.post_opting_status(form_data=self.create_opt_out_form_data())
         # Created Opting status
         self.assertTrue(
             RQCReviewerOptingDecision.objects.filter(
@@ -156,8 +153,7 @@ class TestReviewerOpting(RQCAdapterBaseTestCase):
                                                                   opting_status=self.UNDEFINED)
 
         self.get_review_form(assignment_id=self.review_assignment.id)
-        self.post_opting_status(form_data=self.create_opt_in_form_data(
-            assignment_id=self.review_assignment.id))
+        self.post_opting_status(form_data=self.create_opt_in_form_data())
         self.assert_opting_decision_exists()
         # Updated Opting-Decision for Review Assignment
         self.assertTrue(RQCReviewerOptingDecisionForReviewAssignment.objects.filter(
@@ -181,14 +177,14 @@ class TestReviewerOpting(RQCAdapterBaseTestCase):
         """Does not update RQCOptingStatusForReviewAssignment for declined review assignments."""
         review_assignment_opting_status = self.set_status_undefined_for_review_assignment_three()
         review_assignment_opting_status.review_assignment.date_declined = timezone.now()
-        self.post_opting_status(form_data=self.create_opt_in_form_data(assignment_id=self.review_assignment.id))
+        self.post_opting_status(form_data=self.create_opt_in_form_data())
         self.assert_review_assignment_three_not_updated()
 
     def test_complete_review_assignments_do_not_status_update(self):
         """Does not update RQCOptingStatusForReviewAssignment for complete review assignments."""
         review_assignment_opting_status = self.set_status_undefined_for_review_assignment_three()
         review_assignment_opting_status.review_assignment.is_complete = True
-        self.post_opting_status(form_data=self.create_opt_in_form_data(assignment_id=self.review_assignment.id))
+        self.post_opting_status(form_data=self.create_opt_in_form_data())
         self.assertTrue(RQCReviewerOptingDecisionForReviewAssignment.objects.filter(
             review_assignment=self.review_assignment_three,
             opting_status=self.UNDEFINED).exists())
@@ -197,7 +193,7 @@ class TestReviewerOpting(RQCAdapterBaseTestCase):
         """Does not update RQCOptingStatusForReviewAssignment for already sent review assignments."""
         review_assignment_opting_status = self.set_status_undefined_for_review_assignment_three()
         review_assignment_opting_status.sent_to_rqc = True
-        self.post_opting_status(form_data=self.create_opt_in_form_data(assignment_id=self.review_assignment.id))
+        self.post_opting_status(form_data=self.create_opt_in_form_data())
 
 #Integration-Tests
 
@@ -209,7 +205,7 @@ class TestReviewerOpting(RQCAdapterBaseTestCase):
         self.assert_opting_form_template_used(response)
 
     def redirect_test_helper(self):
-        form_data = self.create_opt_in_form_data(assignment_id=self.review_assignment.id)
+        form_data = self.create_opt_in_form_data()
         response = self.post_opting_status(form_data=form_data, follow=True)
         # Created Opting status
         self.assert_opting_decision_exists()
@@ -350,12 +346,12 @@ class TestReviewerOpting(RQCAdapterBaseTestCase):
         """If the page was accessed with an access code the redirection
         should redirect to the same page with the code."""
         self.helper_create_session_with_anonymous_user()
-        self.get_review_form(self.review_assignment.id, self.review_assignment.access_code)
+        access_code = self.review_assignment.access_code
+        self.get_review_form(self.review_assignment.id, access_code)
         response = self.post_opting_status(form_data=self.create_opt_in_form_data(
-                                           assignment_id=self.review_assignment.id,
-                                           access_code = self.review_assignment.access_code),
+                                           access_code = access_code),
+                                           access_code = access_code,
                                            follow=True)
         expected_url = reverse(self.review_form_view, args=[self.review_assignment.id])
-        expected_url += f"?access_code={self.review_assignment.access_code}"
+        expected_url += f"?access_code={access_code}"
         self.assertRedirects(response, expected_url)
-

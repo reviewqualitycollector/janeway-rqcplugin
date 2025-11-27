@@ -10,6 +10,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from plugins.rqc_adapter.utils import utc_now
 from review import logic
 from review.models import ReviewAssignment
+from security.decorators import reviewer_user_for_assignment_required
 from utils.logger import get_logger
 from security import decorators
 from submission import models as submission_models
@@ -156,13 +157,13 @@ def submit_article_for_grading(request, article_id):
 # The request must provide a journal object because the opting decision in specific to the journal
 # The user must be a reviewer since only reviewers should be able to opt in or out
 @decorators.has_journal
-def set_reviewer_opting_status(request):
+@reviewer_user_for_assignment_required
+def set_reviewer_opting_status(request, assignment_id):
     if request.method == 'POST':
         form = forms.ReviewerOptingForm(request.POST)
         if form.is_valid():
 
             opting_status = form.cleaned_data['status_selection_field']
-            assignment_id = request.POST.get('assignment_id')
 
             # Logic checks request.GET for the access code.
             access_code = logic.get_access_code(request)
