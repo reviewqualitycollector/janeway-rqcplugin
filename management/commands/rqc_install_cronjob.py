@@ -33,9 +33,9 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument(
             '--action',
-            choices=['install', 'remove', 'status'],
+            choices=['install', 'remove', 'status', 'check_config'],
             default='install',
-            help='Action to perform: install, remove, or check status of the cronjob'
+            help='Action to perform: install, remove, status, or check_config of the cronjob'
         )
         parser.add_argument(
             '--time',
@@ -139,24 +139,59 @@ class Command(BaseCommand):
         """
         Temporarily installs a cron job that tests if cron is correctly configured.
         """
+        import time
+        import datetime
+        
         tab = self.get_crontab()
         if tab is None:
             self.stdout.write(self.style.ERROR('Could not find crontab. Perhaps the crontab python module is not installed.'))
-        # Get command
+            return
+
+        # Setup temp file
+        timestamp = int(time.time())
+        output_path = f'/tmp/rqc_cron_test_{timestamp}.txt'
+        command_name = 'rqc_test_cron'
+        
+        # Get command - try to mimic the install logic
         virtualenv = os.environ.get('VIRTUAL_ENV', None)
-        django_command = "{0}/manage.py {1}".format(settings.BASE_DIR, 'rqc_test_cron')
+        django_command = "{0}/manage.py {1} --output-path {2}".format(settings.BASE_DIR, command_name, output_path)
+        
         if virtualenv:
             command = '/%s/bin/python3 %s' % (virtualenv, django_command)
         else:
             command = '%s' % django_command
+            
+        self.stdout.write(f'Installing temporary cron job: {command}')
+        
         cron_job = tab.new(command)
         cron_job.setall('* * * * *')
         tab.write()
-        # Wait for the cronjob to be executed
-        sleep(61)
-        # Check if the command was successful
+        
+        self.stdout.write('Waiting for cron job to execute (timeouts in 70s)...')
+        
+        # Poll for file
+        start_time = time.time()
+        success = False
+        while time.time() - start_time < 70:
+            if os.path.exists(output_path):
+                with open(output_path, 'r') as f:
+                    content = f.read().strip()
+                
+                if content == 'SUCCESS':
+                    self.stdout.write(self.style.SUCCESS('Cron configuration verified successfully.'))
+                    success = True
+                else:
+                    self.stdout.write(self.style.ERROR(f'Cron job ran but reported failure: {content}'))
+                    success = True # It ran, but failed internally
+                break
+            time.sleep(2)
+            
+        if not success:
+             self.stdout.write(self.style.ERROR('Timeout waiting for cron job. It likely did not run.'))
 
-        self.remove_rqc_cronjob('rqc_test_cron')
+        self.remove_rqc_cronjob(command_name)
+        if os.path.exists(output_path):
+            os.remove(output_path)
 
     def handle(self, *args, **options):
         """
