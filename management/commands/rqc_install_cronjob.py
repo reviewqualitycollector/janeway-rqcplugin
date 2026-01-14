@@ -167,6 +167,10 @@ class Command(BaseCommand):
         cron_job.setall('* * * * *')
         tab.write()
         
+        self.stdout.write('Current crontab configuration:')
+        for job in tab:
+            self.stdout.write(f'  - {job}')
+        
         self.stdout.write('Waiting for cron job to execute (timeouts in 70s)...')
         
         # Poll for file
@@ -192,6 +196,11 @@ class Command(BaseCommand):
         self.remove_rqc_cronjob(command_name)
         if os.path.exists(output_path):
             os.remove(output_path)
+            
+        self.stdout.write('Crontab cleared of test job. Current configuration:')
+        tab = self.get_crontab() # Reload to be sure
+        for job in tab:
+            self.stdout.write(f'  - {job}')
 
     def handle(self, *args, **options):
         """
