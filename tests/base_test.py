@@ -17,13 +17,15 @@ import review.models
 from core import (
     models as core_models,
 )
+from core.plugin_loader import load
 import submission.models
-from plugins.rqc_adapter.models import RQCReviewerOptingDecisionForReviewAssignment, RQCReviewerOptingDecision, \
+from plugins.janeway_rqcplugin.models import RQCReviewerOptingDecisionForReviewAssignment, RQCReviewerOptingDecision, \
     RQCJournalAPICredentials
+from utils import models as utils_models
 from utils.testing import helpers
 
 # Django-Debug-Toolbar gets disabled to avoid it wrapping html responses with its own templates
-@override_settings(ROOT_URLCONF="plugins.rqc_adapter.tests.test_urls")
+@override_settings(ROOT_URLCONF="plugins.janeway_rqcplugin.tests.test_urls")
 @override_settings(
     DEBUG=False,
     DEBUG_TOOLBAR_CONFIG={
@@ -47,6 +49,7 @@ class RQCAdapterBaseTestCase(TestCase):
 
     @classmethod
     def create_author(cls, journal, email):
+
         author = helpers.create_user(
             email,
             ['author'],
@@ -125,6 +128,13 @@ class RQCAdapterBaseTestCase(TestCase):
             "editor",
         ]
         cls.press = helpers.create_press()
+
+        # Enable the plugin
+        utils_models.Plugin.objects.create(
+            name='janeway_rqcplugin',
+            enabled=True,
+        )
+        load()
 
         #Create Journals
         cls.journal_one, cls.journal_two = helpers.create_journals()

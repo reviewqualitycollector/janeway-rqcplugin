@@ -1,20 +1,20 @@
 """
 © Julius Harms, Freie Universität Berlin 2025
 """
-from plugins.rqc_adapter.events import create_review_assignment_opting_decision, implicit_call_mhs_submission
+from plugins.janeway_rqcplugin.events import create_review_assignment_opting_decision, implicit_call_mhs_submission
 from utils import plugins
 from utils.logger import get_logger
 from events import logic as events_logic
 from events.logic import Events
 
-from plugins.rqc_adapter.config import VERSION
+from plugins.janeway_rqcplugin.config import VERSION
 
 PLUGIN_NAME = 'RQC Adapter Plugin'
 DISPLAY_NAME = 'RQC Adapter'
 DESCRIPTION = 'This plugin connects Janeway to the RQC API, allowing it to report review data for grading and inclusion in reviewers receipts.'
 AUTHOR = 'Julius Harms'
-SHORT_NAME = 'rqc_adapter'
-MANAGER_URL = 'rqc_adapter_manager'
+SHORT_NAME = 'janeway_rqcplugin'
+MANAGER_URL = 'janeway_rqcplugin_manager'
 JANEWAY_VERSION = "1.8.0"
 
 logger = get_logger(__name__)
@@ -41,11 +41,11 @@ def hook_registry():
     Rqc_adapterPlugin.hook_registry()
     return {
         'in_review_editor_actions': {
-                    'module': 'plugins.rqc_adapter.hooks',
+                    'module': 'plugins.janeway_rqcplugin.hooks',
                     'function': 'render_rqc_grading_action',
         },
         'review_form_guidelines': {
-            'module': 'plugins.rqc_adapter.hooks',
+            'module': 'plugins.janeway_rqcplugin.hooks',
             'function': 'render_reviewer_opting_form',
         }
     }

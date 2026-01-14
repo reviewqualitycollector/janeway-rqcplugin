@@ -32,7 +32,7 @@ via an explicit call.
                     <a href="https://reviewqualitycollector.org/" target="_blank" rel="noopener">Review Quality Collector (RQC)</a>.
                 </p>
             {% endif %}
-            <form method="POST" action="{% url 'rqc_adapter_submit_article_for_grading' article.pk %}">
+            <form method="POST" action="{% url 'janeway_rqcplugin_submit_article_for_grading' article.pk %}">
                 {% csrf_token %}
                 <p>If you are assigned a role that should grade the reviews,
                     you will be redirected to RQC to perform the grading and then directed

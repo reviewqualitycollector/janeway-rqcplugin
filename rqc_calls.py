@@ -15,10 +15,10 @@ from requests import RequestException
 from utils.logger import get_logger
 from utils.models import Version
 
-from plugins.rqc_adapter.models import RQCCall, RQCReviewerOptingDecisionForReviewAssignment
-from plugins.rqc_adapter.utils import convert_date_to_rqc_format
-from plugins.rqc_adapter.config import API_VERSION, API_BASE_URL, REQUEST_TIMEOUT
-from plugins.rqc_adapter.config import VERSION
+from plugins.janeway_rqcplugin.models import RQCCall, RQCReviewerOptingDecisionForReviewAssignment
+from plugins.janeway_rqcplugin.utils import convert_date_to_rqc_format
+from plugins.janeway_rqcplugin.config import API_VERSION, API_BASE_URL, REQUEST_TIMEOUT
+from plugins.janeway_rqcplugin.config import VERSION
 
 logger = get_logger(__name__)
 

@@ -46,7 +46,7 @@ set here.
     </p>
     <h2>RQC configuration for the current journal</h2>
     <div class="content">
-        <form method="POST" action="{% url 'rqc_adapter_handle_journal_settings_update' %}">
+        <form method="POST" action="{% url 'janeway_rqcplugin_handle_journal_settings_update' %}">
             {% csrf_token %}
             <div class="field_group">
                 <label for="{{ form.journal_id_field.id_for_label }}">

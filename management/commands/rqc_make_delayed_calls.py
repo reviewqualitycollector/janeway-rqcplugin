@@ -7,10 +7,10 @@ from time import sleep
 
 from django.core.management.base import BaseCommand
 
-from plugins.rqc_adapter.models import RQCDelayedCall, RQCJournalAPICredentials
-from plugins.rqc_adapter.rqc_calls import call_mhs_submission
-from plugins.rqc_adapter.submission_data_retrieval import fetch_post_data
-from plugins.rqc_adapter.utils import utc_now
+from plugins.janeway_rqcplugin.models import RQCDelayedCall, RQCJournalAPICredentials
+from plugins.janeway_rqcplugin.rqc_calls import call_mhs_submission
+from plugins.janeway_rqcplugin.submission_data_retrieval import fetch_post_data
+from plugins.janeway_rqcplugin.utils import utc_now
 from utils.logger import get_logger
 
 logger = get_logger(__name__)
