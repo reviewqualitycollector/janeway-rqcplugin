@@ -30,14 +30,14 @@ This repository is a Janeway plugin that realizes a Janeway adapter for the RQC 
 
 ### 3.1 Installation
 
-1. Clone this repository into the Janeway plugins folder (the newly created folder should be named rqc_adapter)
+1. Clone this repository into the Janeway plugins folder (the newly created folder should be named janeway_rqcplugin)
    ```bash
    cd /path/to/janeway/src/plugins
-   git clone https://github.com/reviewqualitycollector/janeway-rqcplugin.git rqc_adapter
+   git clone https://github.com/reviewqualitycollector/janeway-rqcplugin.git janeway_rqcplugin
    ```
 2. From the src directory run:
    ```bash
-   python3 manage.py install_plugins rqc_adapter
+   python3 manage.py install_plugins janeway_rqcplugin
    ```
 3. Run the Janeway command for required migrations:
    ```bash

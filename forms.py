@@ -6,8 +6,8 @@ The forms used by the plugin are defined here.
 from django import forms
 from django.core.validators import RegexValidator
 
-from plugins.rqc_adapter.models import RQCReviewerOptingDecision
-from plugins.rqc_adapter.rqc_calls import call_mhs_apikeycheck
+from plugins.janeway_rqcplugin.models import RQCReviewerOptingDecision
+from plugins.janeway_rqcplugin.rqc_calls import call_mhs_apikeycheck
 
 class RqcSettingsForm(forms.Form):
     journal_id_field = forms.IntegerField(error_messages={'invalid': 'Journal ID must be a number'}, label='RQC journal ID',

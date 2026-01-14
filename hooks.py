@@ -10,9 +10,9 @@ from django.template.loader import render_to_string
 from review import logic
 from review.models import ReviewAssignment
 
-from plugins.rqc_adapter import forms
-from plugins.rqc_adapter.models import RQCReviewerOptingDecision, RQCJournalAPICredentials
-from plugins.rqc_adapter.utils import has_opted_in_or_out
+from plugins.janeway_rqcplugin import forms
+from plugins.janeway_rqcplugin.models import RQCReviewerOptingDecision, RQCJournalAPICredentials
+from plugins.janeway_rqcplugin.utils import has_opted_in_or_out
 
 def render_rqc_grading_action(context):
     """
@@ -34,7 +34,7 @@ def render_rqc_grading_action(context):
         has_outstanding_reviews = True
     else:
         has_outstanding_reviews = False
-    string = render_to_string('rqc_adapter/grading_action.html', context={'article': context['article'], 'has_outstanding_reviews': has_outstanding_reviews }, request=request)
+    string = render_to_string('janeway_rqcplugin/grading_action.html', context={'article': context['article'], 'has_outstanding_reviews': has_outstanding_reviews }, request=request)
     return string
 
 def render_reviewer_opting_form(context):
@@ -63,7 +63,7 @@ def render_reviewer_opting_form(context):
     if has_api_credentials and not has_opted_in_or_out(user, journal):
         form = forms.ReviewerOptingForm(initial=
                                         {'status_selection_field': RQCReviewerOptingDecision.OptingChoices.OPT_IN})
-        return render_to_string('rqc_adapter/reviewer_opting_form.html',
+        return render_to_string('janeway_rqcplugin/reviewer_opting_form.html',
                                 context={'form': form,
                                          'assignment': assignment,
                                          'access_code': access_code},

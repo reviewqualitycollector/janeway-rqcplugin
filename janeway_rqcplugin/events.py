@@ -5,11 +5,11 @@ This file contains the functions that are registered for events in plugin_settin
 """
 from utils.logger import get_logger
 
-from plugins.janeway_rqcplugin.utils import utc_now
-from plugins.janeway_rqcplugin.models import RQCJournalAPICredentials, RQCReviewerOptingDecision, \
+from plugins.rqc_adapter.utils import utc_now
+from plugins.rqc_adapter.models import RQCJournalAPICredentials, RQCReviewerOptingDecision, \
     RQCReviewerOptingDecisionForReviewAssignment
-from plugins.janeway_rqcplugin.rqc_calls import call_mhs_submission
-from plugins.janeway_rqcplugin.submission_data_retrieval import fetch_post_data
+from plugins.rqc_adapter.rqc_calls import call_mhs_submission
+from plugins.rqc_adapter.submission_data_retrieval import fetch_post_data
 
 logger = get_logger(__name__)
 

@@ -8,16 +8,16 @@ from django.contrib.auth.models import AnonymousUser
 from django.urls import reverse
 from django.utils import timezone
 
-from plugins.rqc_adapter.models import RQCReviewerOptingDecision, RQCJournalAPICredentials, \
+from plugins.janeway_rqcplugin.models import RQCReviewerOptingDecision, RQCJournalAPICredentials, \
     RQCReviewerOptingDecisionForReviewAssignment
-from plugins.rqc_adapter.tests.base_test import RQCAdapterBaseTestCase
+from plugins.janeway_rqcplugin.tests.base_test import RQCAdapterBaseTestCase
 from utils.testing import helpers
 
 class TestReviewerOpting(RQCAdapterBaseTestCase):
     review_form_view = 'do_review'
     review_form_template = 'review/review_form.html'
-    opting_form_template = 'rqc_adapter/reviewer_opting_form.html'
-    opting_from_post_view = 'rqc_adapter_set_reviewer_opting_status'
+    opting_form_template = 'janeway_rqcplugin/reviewer_opting_form.html'
+    opting_from_post_view = 'janeway_rqcplugin_set_reviewer_opting_status'
     accept_review_request_view = 'accept_review'
 
     def create_opt_in_form_data(self, access_code=None):
@@ -251,7 +251,7 @@ class TestReviewerOpting(RQCAdapterBaseTestCase):
             args=[self.review_assignment_two.id]),HTTP_HOST=self.journal_two.domain)
         self.assertTemplateUsed(response, self.opting_form_template)
 
-    @patch('plugins.rqc_adapter.views.set_reviewer_opting_status')
+    @patch('plugins.janeway_rqcplugin.views.set_reviewer_opting_status')
     def test_non_reviewers_can_not_set_opting_status(self,  mock_set_opting_status):
         """Tests if non-reviewers can not set opting status."""
         self.client.logout()

@@ -7,7 +7,7 @@ from django.urls import reverse
 from django.contrib import messages
 from django.shortcuts import render, redirect, get_object_or_404
 
-from plugins.rqc_adapter.utils import utc_now
+from plugins.janeway_rqcplugin.utils import utc_now
 from review import logic
 from review.models import ReviewAssignment
 from security.decorators import reviewer_user_for_assignment_required
@@ -15,18 +15,18 @@ from utils.logger import get_logger
 from security import decorators
 from submission import models as submission_models
 
-from plugins.rqc_adapter import forms
-from plugins.rqc_adapter.models import RQCReviewerOptingDecision, RQCDelayedCall, RQCJournalAPICredentials, \
+from plugins.janeway_rqcplugin import forms
+from plugins.janeway_rqcplugin.models import RQCReviewerOptingDecision, RQCDelayedCall, RQCJournalAPICredentials, \
     RQCReviewerOptingDecisionForReviewAssignment
-from plugins.rqc_adapter.rqc_calls import call_mhs_submission, RQCErrorCodes
-from plugins.rqc_adapter.submission_data_retrieval import fetch_post_data
+from plugins.janeway_rqcplugin.rqc_calls import call_mhs_submission, RQCErrorCodes
+from plugins.janeway_rqcplugin.submission_data_retrieval import fetch_post_data
 
 logger = get_logger(__name__)
 
 @decorators.has_journal
 @decorators.editor_user_required # Also passes staff and journal managers
 def manager(request):
-    template = 'rqc_adapter/manager.html'
+    template = 'janeway_rqcplugin/manager.html'
     journal = request.journal
     api_key_set = False
     try:
@@ -47,7 +47,7 @@ def manager(request):
 @decorators.editor_user_required
 def handle_journal_settings_update(request):
     if request.method == 'POST':
-        template = 'rqc_adapter/manager.html'
+        template = 'janeway_rqcplugin/manager.html'
         journal = request.journal
         form = forms.RqcSettingsForm(request.POST)
         user_id = request.user.id if hasattr(request, 'user') else None
@@ -78,10 +78,10 @@ def handle_journal_settings_update(request):
             # In the case of validation errors users aren't redirect to preserve and display field and non-field errors
             return render(request, template, {'form': form})
         # Users are redirected after post to prevent double submits
-        return redirect('rqc_adapter_manager')
+        return redirect('janeway_rqcplugin_manager')
     # Ignore non-post requests
     else:
-        return redirect('rqc_adapter_manager')
+        return redirect('janeway_rqcplugin_manager')
 
 def log_settings_error(journal_name, user_id, error_msg):
     logger.error(f'Failed to save RQC settings for journal {journal_name} by user: {user_id}. Details: {error_msg}')

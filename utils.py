@@ -12,7 +12,7 @@ from datetime import datetime, timezone
 
 from django.conf import settings
 
-from plugins.rqc_adapter.models import RQCReviewerOptingDecision, RQCJournalSalt
+from plugins.janeway_rqcplugin.models import RQCReviewerOptingDecision, RQCJournalSalt
 from review.models import RevisionRequest
 
 # As of API version 2023-09-06, RQC does not support file attachments

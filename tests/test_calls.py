@@ -13,14 +13,14 @@ from django.contrib.messages import get_messages
 from django.core.management import call_command
 from django.utils import timezone
 
-from plugins.rqc_adapter.events import implicit_call_mhs_submission
-from plugins.rqc_adapter.models import RQCReviewerOptingDecision, \
+from plugins.janeway_rqcplugin.events import implicit_call_mhs_submission
+from plugins.janeway_rqcplugin.models import RQCReviewerOptingDecision, \
     RQCReviewerOptingDecisionForReviewAssignment, RQCDelayedCall, RQCCall, RQCJournalAPICredentials
-from plugins.rqc_adapter.rqc_calls import RQCErrorCodes
-from plugins.rqc_adapter.tests.base_test import RQCAdapterBaseTestCase
+from plugins.janeway_rqcplugin.rqc_calls import RQCErrorCodes
+from plugins.janeway_rqcplugin.tests.base_test import RQCAdapterBaseTestCase
 from django.urls import reverse
 
-from plugins.rqc_adapter.utils import utc_now
+from plugins.janeway_rqcplugin.utils import utc_now
 from review.models import RevisionRequest, DecisionDraft
 from utils.testing import helpers
 
@@ -28,10 +28,10 @@ has_api_credentials_env = os.getenv("RQC_API_KEY") and os.getenv("RQC_JOURNAL_ID
 
 class TestCallsToMHSSubmissionEndpoint(RQCAdapterBaseTestCase):
 
-    explicit_call_button_template = 'rqc_adapter/grading_action.html'
+    explicit_call_button_template = 'janeway_rqcplugin/grading_action.html'
     review_management_template = 'review/in_review.html'
 
-    post_to_rqc_view = 'rqc_adapter_submit_article_for_grading'
+    post_to_rqc_view = 'janeway_rqcplugin_submit_article_for_grading'
     review_management_view = 'review_in_review'
 
     def post_to_rqc(self, article_id, domain=None):
@@ -85,7 +85,7 @@ class TestCallsToMHSSubmissionEndpointMocked(TestCallsToMHSSubmissionEndpoint):
     def setUp(self):
         super().setUp()
         self.create_journal_credentials(self.journal_one, 9, 'Test key')
-        patcher = patch('plugins.rqc_adapter.rqc_calls.call_rqc_api')
+        patcher = patch('plugins.janeway_rqcplugin.rqc_calls.call_rqc_api')
         self.mock_call = patcher.start()
         self.addCleanup(patcher.stop)
 
@@ -231,18 +231,18 @@ class TestExplicitCalls(TestCallsToMHSSubmissionEndpointMocked):
     def test_submit_review_dialog_included(self):
         """Test that grading action dialog is shown when reviews are present"""
         response = self.get_review_management(self.active_article.pk)
-        self.assertTemplateUsed(response, 'rqc_adapter/grading_action.html')
+        self.assertTemplateUsed(response, 'janeway_rqcplugin/grading_action.html')
 
     def test_submit_review_dialog_excluded(self):
         """Test that grading action dialog is not shown when reviews are not present"""
         response = self.get_review_management(self.active_article_two.pk)
-        self.assertTemplateNotUsed(response, 'rqc_adapter/grading_action.html')
+        self.assertTemplateNotUsed(response, 'janeway_rqcplugin/grading_action.html')
 
     def test_submit_review_dialog_excluded_no_api_credentials(self):
         """Test that grading action dialog is not shown when api credentials are missing"""
         RQCJournalAPICredentials.objects.filter(journal=self.journal_one).delete()
         response = self.get_review_management(self.active_article_two.pk)
-        self.assertTemplateNotUsed(response, 'rqc_adapter/grading_action.html')
+        self.assertTemplateNotUsed(response, 'janeway_rqcplugin/grading_action.html')
 
 
 class TestImplicitCalls(TestCallsToMHSSubmissionEndpointMocked):
@@ -339,7 +339,7 @@ class TestDelayedCalls(TestCallsToMHSSubmissionEndpointMocked):
                                                            failure_reason=str(response_code),
                                                            remaining_tries=10).exists())
 
-    @patch('rqc_adapter.management.commands.rqc_install_cronjob.crontab.CronTab')
+    @patch('plugins.janeway_rqcplugin.management.commands.rqc_install_cronjob.crontab.CronTab')
     def test_cron_tab_created(self, mock_crontab):
         """Tests creation of crontab."""
         mock_tab = MagicMock()
