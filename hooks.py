@@ -22,15 +22,13 @@ def render_rqc_grading_action(context):
     request = context['request']
     article = context['article']
     journal = request.journal
-    # Only render the element if the journal has valid credentials.
     has_api_credentials = RQCJournalAPICredentials.objects.filter(journal=journal).exists()
     if not has_api_credentials:
         return ''
-    # If there are no accepted Review Assignments yet no button for grading is shown
     if not ReviewAssignment.objects.filter(article=article, date_requested__isnull=False, date_accepted__isnull = False).exists():
         return ''
     # If there are review assignments for the article that have been accepted
-    # but not yet completed the reviewer needs to be informed before sending the
+    # but not yet completed the editor needs to be informed before sending the
     # data to RQC.
     if ReviewAssignment.objects.filter(article=article, date_requested__isnull=False, date_declined__isnull=True, is_complete=False).exists():
         has_outstanding_reviews = True
@@ -59,8 +57,6 @@ def render_reviewer_opting_form(context):
     access_code = context.get('access_code')
     if not access_code:
         access_code = logic.get_access_code(request)
-    # Only render the opting form if the journal has valid credentials and user has not made
-    # the decision to opt in or out.
     # Validity of the credentials is checked upon entering the settings (not here).
     # Additional validation via another API call is too costly.
     has_api_credentials = RQCJournalAPICredentials.objects.filter(journal=journal).exists()

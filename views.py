@@ -170,7 +170,6 @@ def set_reviewer_opting_status(request, assignment_id):
             if access_code is None:
                 access_code = request.POST.get('access_code', None)
 
-            # Get the ReviewAssignment object.
             try:
                 if access_code is not None:
                     assignment = ReviewAssignment.objects.get(

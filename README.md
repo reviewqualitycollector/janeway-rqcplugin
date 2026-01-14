@@ -2,7 +2,9 @@
 
 **Created:** 2025, Julius Harms, Freie Universität Berlin
 
-Version: 22.09.2025. This plugin is in development and is not an official plugin by the RQC initiative.
+Version: 01.01.2026: We are currently looking to conduct beta tests.  
+If you are interested in helping, please comment on the GitHub issue:
+https://github.com/reviewqualitycollector/janeway-rqcplugin/issues/15
 
 ## 1. What It Is
 
