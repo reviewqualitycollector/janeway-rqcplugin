@@ -6,7 +6,7 @@ This file defines the fields shown in the Django admin interface.
 
 from django.contrib import admin
 
-from plugins.rqc_adapter.models import RQCReviewerOptingDecision, RQCDelayedCall, \
+from plugins.janeway_rqcplugin.models import RQCReviewerOptingDecision, RQCDelayedCall, \
     RQCReviewerOptingDecisionForReviewAssignment
 
 class RQCReviewerOptingDecisionAdmin(admin.ModelAdmin):
